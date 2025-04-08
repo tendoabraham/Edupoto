@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:edupoto/home.dart';
 import 'package:edupoto/product_info.dart';
 import 'package:edupoto/search.dart';
@@ -9,31 +11,112 @@ void main() {
   runApp(MyApp());
 }
 
-class MyApp extends StatelessWidget {
+// class MyApp extends StatelessWidget {
+//   @override
+//   Widget build(BuildContext context) {
+//
+//     // Define your custom primary color
+//     MaterialColor customPrimaryColor =
+//     const MaterialColor(0xFF000000, <int, Color>{
+//       50: Color(0xFF000000),
+//       100: Color(0xFF000000),
+//       200: Color(0xFF000000),
+//       300: Color(0xFF000000),
+//       400: Color(0xFF000000),
+//       500: Color(0xFF000000),
+//       600: Color(0xFF000000),
+//       700: Color(0xFF000000),
+//       800: Color(0xFF000000),
+//       900: Color(0xFF000000),
+//     });
+//
+//     return MaterialApp(
+//       debugShowCheckedModeBanner: false,
+//       theme: ThemeData(
+//         primarySwatch: customPrimaryColor,
+//       ),
+//       home: SplashScreen(),
+//       // home: MainScreen(),
+//     );
+//   }
+// }
+
+
+class MyApp extends StatefulWidget {
+  @override
+  _MyAppState createState() => _MyAppState();
+}
+
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
+  static const Duration idleDuration = Duration(minutes: 5);
+  Timer? _idleTimer;
+
+  // Define your custom primary color
+  MaterialColor customPrimaryColor =
+  const MaterialColor(0xFF000000, <int, Color>{
+    50: Color(0xFF000000),
+    100: Color(0xFF000000),
+    200: Color(0xFF000000),
+    300: Color(0xFF000000),
+    400: Color(0xFF000000),
+    500: Color(0xFF000000),
+    600: Color(0xFF000000),
+    700: Color(0xFF000000),
+    800: Color(0xFF000000),
+    900: Color(0xFF000000),
+  });
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    _resetTimer();
+  }
+
+  void _resetTimer() {
+    _idleTimer?.cancel();
+    _idleTimer = Timer(idleDuration, _logout);
+  }
+
+  void _logout() {
+    // Redirect to login screen
+    // Navigator.pushNamedAndRemoveUntil(context, "/", (route) => false);
+    navigatorKey.currentState?.pushNamedAndRemoveUntil("/", (route) => false);
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.paused || state == AppLifecycleState.detached) {
+      _idleTimer?.cancel();
+    } else if (state == AppLifecycleState.resumed) {
+      _resetTimer();
+    }
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _idleTimer?.cancel();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
-    // Define your custom primary color
-    MaterialColor customPrimaryColor =
-    const MaterialColor(0xFF000000, <int, Color>{
-      50: Color(0xFF000000),
-      100: Color(0xFF000000),
-      200: Color(0xFF000000),
-      300: Color(0xFF000000),
-      400: Color(0xFF000000),
-      500: Color(0xFF000000),
-      600: Color(0xFF000000),
-      700: Color(0xFF000000),
-      800: Color(0xFF000000),
-      900: Color(0xFF000000),
-    });
-
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        primarySwatch: customPrimaryColor,
+    return GestureDetector(
+      behavior: HitTestBehavior.translucent,
+      onTap: _resetTimer,
+      onPanDown: (_) => _resetTimer(),
+      onScaleStart: (_) => _resetTimer(),
+      child: MaterialApp(
+        navigatorKey: navigatorKey,
+        debugShowCheckedModeBanner: false,
+        title: 'Idle Timeout App',
+        initialRoute: '/',
+        routes: {
+          '/': (context) => Home(),
+        },
       ),
-      home: SplashScreen(),
-      // home: MainScreen(),
     );
   }
 }
